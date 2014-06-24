@@ -1,0 +1,7 @@
+/common/migrations/migration-template.php
+/vendor
+/runtime/
+/bower_components/
+/www/assets/
+/.git/
+/deploy/check-valid.sh
