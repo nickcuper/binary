@@ -51,7 +51,7 @@ class EmployeesController extends Controller
 
                 $crit = new CDbCriteria();
                 $crit->compare('parent_id',$model->employee_id,true);
-                
+
                 $dataProvider = new CActiveDataProvider('Employees', array(
 			'criteria'=>$crit,
 		));
@@ -72,17 +72,17 @@ class EmployeesController extends Controller
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
-                
+
                 $parent_id = isset($_GET['parent_id']) ? (int)$_GET['parent_id'] : 0;
 
                 $mSupervisor = Employees::model()->findByAttributes(array(
                     'employee_id' => $parent_id, 'parent_id' => 0));
-                
+
 		if (isset($_POST['Employees']))
 		{
 			$model->attributes=$_POST['Employees'];
-                        
-                        if ($mSupervisor) 
+
+                        if ($mSupervisor)
                             $model->parent_id = $mSupervisor->employee_id;
 
 			if ($model->save())
@@ -139,21 +139,35 @@ class EmployeesController extends Controller
 	public function actionIndex()
 	{
 		$dataProvider=new CActiveDataProvider('Employees');
-                
+
 		$this->render('index',array(
 			'dataProvider'=>$dataProvider,
 		));
 	}
-        
+
 	/**
 	 * Lists tree all models.
 	 */
 	public function actionTree()
 	{
-		$dataProvider=new CActiveDataProvider('Employees');
-                
+
+                $limit = 10;
+                if (isset($_GET['page'])) {
+                    $to = $_GET['page']*10;
+                    $from = $to -10;
+                    $limit = $from.','.$to;
+                }
+
+                $provArray = Employees::model()->get_tree();
+                $count = Employees::model()->count();
+
+		$grid_DataProvider = new CArrayDataProvider($provArray, array(
+                    'totalItemCount' => $count,
+                    'keyField' => 'employee_id', // PRIMARY KEY
+                ));
+
 		$this->render('tree',array(
-			'dataProvider'=>$dataProvider,
+			'dataProvider'=>$grid_DataProvider,
 		));
 	}
 

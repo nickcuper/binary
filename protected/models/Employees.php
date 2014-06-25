@@ -116,49 +116,71 @@ class Employees extends CActiveRecord
 	{
 		return parent::model($className);
 	}
-        
+
         protected function beforeSave()
 	{
             $this->date_register = time();
 
             return parent::beforeSave();
 	}
-        
-        function get_tree($except = -1) 
-        {
-            $a=$this->find('all', array('conditions' => array('is_tmp' => 0), 'fields' => array('id',"parent_id","name", 'alias'),'order'=>"name"));
-		
-            $b=array();
-            foreach ($a as $value)
-            {
-                $b[$value[$this->name]['parent_id']][]=$value[$this->name];
-            }
-            return $this->flat_tree($b, $except);
-        }
 
-	function flat_tree(&$data, $except=-1, $id=0, $add="")
+        public static function get_tree($except = -1)
         {
-            $res=array();
-            if (isset($data[$id]) && is_array($data[$id]))
-            foreach ($data[$id] as $value)
-            {
-                if ($value['id']!=$except)
+                $sql = "SELECT * FROM employees Where 1 LIMIT 0,10";
+
+                $a = Yii::app()->db->createCommand($sql)->queryAll();
+                $children = array();
+
+                // first pass - collect children
+                foreach($a as $v )
                 {
-                    $res["{$value['id']}"]=$add.$value['name'];
-                    if (array_key_exists($value['id'],$data)) {
-                        $res=$this->merge($res,$this->flat_tree($data,$except,$value['id'],$add."--"));
-                    }
+                        $pt = $v['parent_id'];
+                        $list = @$children[$pt] ? $children[$pt] : array();
+                        array_push( $list, $v );
+                        $children[$pt] = $list;
                 }
-            }
-            return $res;
+
+                // second pass - get an indent list of the items
+                $items = self::flat_tree( 0, '', array(), $children, 9999, 0, 1 );
+                // third pass, set into different menus
+                foreach($items as $key=>$item)
+                {
+                    $resultlist[$key] = $item;
+                }
+
+                return $resultlist;
         }
 
-	public function merge($ar1, $ar2)
+	protected static function flat_tree($id, $indent, $list, &$children, $maxlevel=9999, $level=0, $type=1)
         {
-            foreach ($ar2 as $key => $value)
-            {
-                $ar1[$key]=$value;
-            }
-            return $ar1;
+                if (@$children[$id] && $level <= $maxlevel)
+                {
+                        foreach ($children[$id] as $v)
+                        {
+                                $id = $v['employee_id'];
+
+                                if ( $type )
+                                {
+                                        $pre    = '- ';
+                                        $spacer = '-   ';
+                                } else {
+                                        $pre    = '- ';
+                                        $spacer = '  ';
+                                }
+
+                                if ( $v['parent_id']== 0 )
+                                {
+                                        $txt    = $v['first_name'];
+                                } else {
+                                        $txt    = $pre . $v['first_name'];
+                                }
+                                $pt = $v['parent_id'];
+                                $list[$id] = $v;
+                                $list[$id]['name'] = "$indent$txt";
+
+                                $list = self::flat_tree( $id, $indent . $spacer, $list, $children, $maxlevel, $level+1, $type );
+                        }
+                }
+                return $list;
         }
 }

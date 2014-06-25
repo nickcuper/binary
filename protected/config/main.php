@@ -25,10 +25,11 @@ return array(
         'bootstrap.widgets.*',
         'bootstrap.extensions.*',
         'bootstrap.behaviors.*',
+         
     ),
-    
+
     'defaultController' => 'employees',
-    
+
     'modules' => array(
         'gii' => array(
             'class' => 'system.gii.GiiModule',
@@ -99,7 +100,7 @@ return array(
                 ),
             ),
         ),
-        
+
         'log' => array(
             'class' => 'CLogRouter',
             'routes' => array(
