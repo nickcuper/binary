@@ -42,17 +42,15 @@ Yii::app()->clientScript
             z-index: 2;
         }
         .form-signin input[type="email"] {
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
+
             margin-bottom: -1px;
         }
         .form-signin input[type="password"] {
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
+
             margin-bottom: 10px;
         }
 
-        </style>
+        </style> <script src="http://code.jquery.com/jquery-migrate-1.0.0.js"></script>
     </head>
 
     <body>
@@ -65,7 +63,7 @@ Yii::app()->clientScript
             'brandUrl' => Yii::app()->homeUrl,
             'position' => BsHtml::NAVBAR_POSITION_FIXED_TOP,
             'items' => array(
-                
+
                 array(
                     'class' => 'bootstrap.widgets.BsNav',
                     'type' => 'navbar',

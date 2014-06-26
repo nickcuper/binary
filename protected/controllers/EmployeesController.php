@@ -15,7 +15,8 @@ class EmployeesController extends Controller
 	{
 		return array(
 			'accessControl', // perform access control for CRUD operations
-			'postOnly + delete', // we only allow deletion via POST request
+			'postOnly + delete,addsubordinates', // we only allow deletion via POST request
+			'ajaxOnly + autocomplete,addsubordinates', // we only allow deletion via POST request
 		);
 	}
 
@@ -32,7 +33,7 @@ class EmployeesController extends Controller
 				'users'=>array('*'),
 			),
 			array('allow', // allow authenticated user to perform 'create' and 'update' actions
-				'actions'=>array('create','update','admin','delete'),
+				'actions'=>array('create','update','admin','delete','autocomplete','addsubordinates'),
 				'users'=>array('@'),
 			),
 			array('deny',  // deny all users
@@ -48,16 +49,18 @@ class EmployeesController extends Controller
 	public function actionView($id)
 	{
                 $model = $this->loadModel($id);
+                $descendants=$model->descendants()->findAll();
 
-                $crit = new CDbCriteria();
-                $crit->compare('parent_id',$model->employee_id,true);
+                $arrayDataProvider=new CArrayDataProvider($descendants, array(
+                        'keyField'=>'employee_id',
+                        'pagination'=>array(
+                                'pageSize'=>10,
+                        ),
+                ));
 
-                $dataProvider = new CActiveDataProvider('Employees', array(
-			'criteria'=>$crit,
-		));
 		$this->render('view',array(
 			'model'=>$model,
-                    'dataProvider' => $dataProvider
+                        'dataProvider'=>$arrayDataProvider
 		));
 	}
 
@@ -67,31 +70,32 @@ class EmployeesController extends Controller
 	 */
 	public function actionCreate()
 	{
-
                 $model=new Employees;
 
 		// Uncomment the following line if AJAX validation is needed
 		// $this->performAjaxValidation($model);
 
                 $parent_id = isset($_GET['parent_id']) ? (int)$_GET['parent_id'] : 0;
-
-                $mSupervisor = Employees::model()->findByAttributes(array(
-                    'employee_id' => $parent_id, 'parent_id' => 0));
+                $root = Employees::model()->findByPk($parent_id);
 
 		if (isset($_POST['Employees']))
 		{
 			$model->attributes=$_POST['Employees'];
 
-                        if ($mSupervisor)
-                            $model->parent_id = $mSupervisor->employee_id;
+                        if ($root) {
 
-			if ($model->save())
-				$this->redirect(array('view','id'=>$model->employee_id));
+                                if ($model->appendTo($root))
+                                        $this->redirect(array('view','id'=>$model->employee_id));
+                        } else {
+
+                                if ($model->saveNode())
+                                        $this->redirect(array('view','id'=>$model->employee_id));
+                        }
 		}
 
 		$this->render('create',array(
 			'model'=>$model,
-                        'supervisor'=> $mSupervisor,
+                        'supervisor'=>$root,
 		));
 	}
 
@@ -126,7 +130,7 @@ class EmployeesController extends Controller
 	 */
 	public function actionDelete($id)
 	{
-		$this->loadModel($id)->delete();
+		$this->loadModel($id)->deleteNode();
 
 		// if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
 		if(!isset($_GET['ajax']))
@@ -151,24 +155,17 @@ class EmployeesController extends Controller
 	public function actionTree()
 	{
 
-                $limit = 10;
-                if (isset($_GET['page'])) {
-                    $to = $_GET['page']*10;
-                    $from = $to -10;
-                    $limit = $from.','.$to;
-                }
+                $criteria=new CDbCriteria;
+                $criteria->order='t.root, t.lft';
 
-                $provArray = Employees::model()->get_tree();
-                $count = Employees::model()->count();
+                $dataProvider=new CActiveDataProvider('Employees', array(
+			'criteria'=>$criteria,
+		));
 
-		$grid_DataProvider = new CArrayDataProvider($provArray, array(
-                    'totalItemCount' => $count,
-                    'keyField' => 'employee_id', // PRIMARY KEY
+                $this->render('tree',array(
+                        'dataProvider'=>$dataProvider,
                 ));
 
-		$this->render('tree',array(
-			'dataProvider'=>$grid_DataProvider,
-		));
 	}
 
 	/**
@@ -213,4 +210,47 @@ class EmployeesController extends Controller
 			Yii::app()->end();
 		}
 	}
+
+        /**
+         * Autocomplete
+         * @return string $list
+         */
+        public function actionAutocomplete()
+        {
+                $list ='';
+
+                if (isset($_GET['q'])) {
+                        $name = $_GET['q'];
+                        $criteria = new CDbCriteria;
+                        $criteria->condition = "employee_id=root AND (first_name LIKE :name OR last_name LIKE :name)";
+                        $criteria->params = array(":name"=>"%$name%");
+                        $criteria->limit = 20;
+                        $emplArray = Employees::model()->findAll($criteria);
+
+                        foreach ( $emplArray as $model)
+                        {
+                            $list .= $model->first_name.' '.$model->last_name.'|'.$model->employee_id. "\n";
+                        }
+                }
+
+                echo $list;
+                Yii::app()->end();
+        }
+
+        /**
+         * Add Relations
+         * @throws CHttpException
+         */
+        public function actionAddSubordinates()
+        {
+                if (!isset($_POST['employee_id']) || !isset($_POST['parent_id'])) throw new CHttpException(404,'The requested page does not exist.');
+
+                $root = Employees::model()->findByPk((int)$_POST['employee_id']);
+                $child = Employees::model()->findByPk((int)$_POST['parent_id']);
+
+                if ($root && $child)
+                    $root->moveAsFirst($child);
+
+                Yii::app()->end();
+        }
 }

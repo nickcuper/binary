@@ -16,9 +16,9 @@
         'enableAjaxValidation' => false,
     ));
     ?>
-    
+
     <?php echo $form->errorSummary($model); ?>
-    
+
     <?php echo $form->textFieldControlGroup($model, 'first_name', array('size' => 60, 'maxlength' => 64)); ?>
 
     <?php echo $form->textFieldControlGroup($model, 'last_name', array('size' => 60, 'maxlength' => 64)); ?>

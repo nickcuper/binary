@@ -8,13 +8,17 @@ $this->breadcrumbs = array(
 );
 ?>
 
-<h1>View Employees #<?php echo $model->employee_id; ?></h1>
-
 <?php
+$parent = $model->parent()->find();
 $this->widget('bootstrap.widgets.BsDetailView', array(
     'data' => $model,
     'attributes' => array(
         'employee_id',
+        array(
+            'name' => 'root',
+            'value' => ($parent) ? CHtml::link($parent->first_name.' '.$parent->last_name,array('employees/view', 'id'=>$parent->employee_id)) : 'Not found',
+            'type' => 'raw',
+        ),
         'first_name',
         'last_name',
         'positions',
@@ -33,21 +37,23 @@ if (!Yii::app()->user->isGuest)
 {
     echo BsHtml::buttonGroup(array(
         array(
-            'label' => 'Create New',
+            'label' => 'Add Employee',
             'url' => Yii::app()->createAbsoluteUrl('employees/create'),
             'type' => BsHtml::BUTTON_TYPE_LINK
         ),
         array(
-            'label' => 'Add Subordinates',
-            'url' => Yii::app()->createAbsoluteUrl('employees/create', array('parent_id' => $model->employee_id)),
-            'type' => BsHtml::BUTTON_TYPE_LINK
-        ),
-        array(
-            'label' => 'Update',
+            'label' => 'Update Employee',
             'url' => Yii::app()->createAbsoluteUrl('employees/update', array('id' => $model->employee_id)),
             'type' => BsHtml::BUTTON_TYPE_LINK
         ),
+        array(
+            'label' => 'Create Subordinate',
+            'url' => Yii::app()->createAbsoluteUrl('employees/create', array('parent_id' => $model->employee_id)),
+            'type' => BsHtml::BUTTON_TYPE_LINK
+        ),
     ));
+    $this->renderPartial('_autocomplete', array('model' => $model));
+
 }
 ?>
 

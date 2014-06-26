@@ -20,7 +20,7 @@
  * or associative arrays (e.g. query results of DAO).
  * Make sure to set the {@link keyField} property to the name of the field that uniquely
  * identifies a data record or false if you do not have such a field.
- * 
+ *
  * CArrayDataProvider may be used in the following way:
  * <pre>
  * $rawData=Yii::app()->db->createCommand('SELECT * FROM tbl_user')->queryAll();
@@ -93,6 +93,7 @@ class CArrayDataProvider extends CDataProvider
 		{
 			$pagination->setItemCount($this->getTotalItemCount());
 			return array_slice($this->rawData, $pagination->getOffset(), $pagination->getLimit());
+
 		}
 		else
 			return $this->rawData;

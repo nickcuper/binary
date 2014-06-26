@@ -25,7 +25,8 @@ return array(
         'bootstrap.widgets.*',
         'bootstrap.extensions.*',
         'bootstrap.behaviors.*',
-         
+        'application.extensions.nestedset.*',
+        'application.helper.*'
     ),
 
     'defaultController' => 'employees',

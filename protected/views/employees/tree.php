@@ -7,23 +7,63 @@ $this->breadcrumbs=array(
 );
 ?>
 
-<h1>Employees List</h1>
+<h1>Employees Tree</h1>
 
 <?php
-$this->widget('bootstrap.widgets.BsGridView', array(
-    'dataProvider' => $dataProvider,
-    'id' => 'employee-grid',
-    'type' => BsHtml::GRID_TYPE_HOVER,
-    'columns'=>array(
-		'employee_id',
-		'name',
-		'first_name',
-		'last_name',
-		'positions',
-		'email',
-		'phone',
-		'date_register',
-	),
-     'pager' => array('class' => 'bootstrap.widgets.BsPager','size' => BsHtml::PAGINATION_SIZE_DEFAULT),
-));
+
+
+$criteria=new CDbCriteria;
+$criteria->order='t.root, t.lft'; // or 't.root, t.lft' for multiple trees
+$criteria->limit=10; // or 't.root, t.lft' for multiple trees
+$categories=  Employees::model()->findAll($criteria);
+$level=0;
+$result = array();
+/*foreach($categories as $n=>$category)
+{
+
+
+    if($category->level==$level)
+    {
+            $pre    = '- ';
+            $spacer = '  ';
+            echo CHtml::closeTag('li')."\n";
+
+    }
+    else if($category->level>$level)
+    {
+            $pre    = '- ';
+            $spacer = '-   ';
+            echo CHtml::openTag('ul')."\n";
+    }
+    else
+    {
+        $pre    = '- ';
+        $spacer = '  ';
+        echo CHtml::closeTag('li')."\n";
+
+        for($i=$level-$category->level;$i;$i--)
+        {
+            echo CHtml::closeTag('ul')."\n";
+            echo CHtml::closeTag('li')."\n";
+        }
+    }
+    for($i=1;$i<=$category->level;$i++)
+    {
+        $pre .='-';
+
+    }
+    echo CHtml::openTag('li');
+    echo CHtml::encode($pre.$category->first_name);
+    $level=$category->level;
+
+
+}
+
+for($i=$level;$i;$i--)
+{
+    echo CHtml::closeTag('li')."\n";
+    echo CHtml::closeTag('ul')."\n";
+}
+*/
+$this->renderPartial('_grid-tree',array('dataProvider' => $dataProvider));
 ?>
