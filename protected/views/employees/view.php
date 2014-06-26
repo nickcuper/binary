@@ -16,7 +16,7 @@ $this->widget('bootstrap.widgets.BsDetailView', array(
         'employee_id',
         array(
             'name' => 'root',
-            'value' => ($parent) ? CHtml::link($parent->first_name.' '.$parent->last_name,array('employees/view', 'id'=>$parent->employee_id)) : 'Not found',
+            'value' => ($parent) ? CHtml::link($parent->first_name.' '.$parent->last_name,array('employees/view', 'id'=>$parent->employee_id)) : 'root',
             'type' => 'raw',
         ),
         'first_name',
