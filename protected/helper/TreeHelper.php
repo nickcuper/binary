@@ -9,10 +9,10 @@ class TreeHelper {
 
     /**
      * Add space for name for level(root)
-     * @param type $level
-     * @param type $name
-     * @param type $txt
-     * @return type
+     * @param integer $level
+     * @param string $name
+     * @param string $txt
+     * @return string
      */
     public static function addGap($level=1, $name, $txt='- ')
     {
