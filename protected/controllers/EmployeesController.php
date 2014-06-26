@@ -221,10 +221,10 @@ class EmployeesController extends Controller
 
                 if (isset($_GET['q'])) {
                         $name = $_GET['q'];
-                        $root = (int)$_GET['employee_id'];
+                        $root = Employees::model()->findByPk((int)$_GET['employee_id']);
                         $criteria = new CDbCriteria;
-                        $criteria->condition = 'employee_id<>:employee AND employee_id=root AND (first_name LIKE :name OR last_name LIKE :name)';
-                        $criteria->params = array(':name'=>"%$name%", 'employee' => $root);
+                        $criteria->condition = '(employee_id<>:employee AND root<>:root) AND employee_id=root AND (first_name LIKE :name OR last_name LIKE :name)';
+                        $criteria->params = array(':name'=>"%$name%", 'employee' => $root->employee_id, 'root' => $root->root);
                         $criteria->limit = 20;
                         $emplArray = Employees::model()->findAll($criteria);
 
@@ -249,9 +249,10 @@ class EmployeesController extends Controller
                 $root = Employees::model()->findByPk((int)$_POST['employee_id']);
                 $child = Employees::model()->findByPk((int)$_POST['parent_id']);
 
-                if ($root && $child)
-                    $root->moveAsFirst($child);
-
+                if ($root && $child) {
+                    try{
+                    $root->moveAsFirst($child);} catch (Exception $e){};
+                }
                 Yii::app()->end();
         }
 }
