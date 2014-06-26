@@ -221,9 +221,10 @@ class EmployeesController extends Controller
 
                 if (isset($_GET['q'])) {
                         $name = $_GET['q'];
+                        $root = (int)$_GET['employee_id'];
                         $criteria = new CDbCriteria;
-                        $criteria->condition = "employee_id=root AND (first_name LIKE :name OR last_name LIKE :name)";
-                        $criteria->params = array(":name"=>"%$name%");
+                        $criteria->condition = 'employee_id<>:employee AND employee_id=root AND (first_name LIKE :name OR last_name LIKE :name)';
+                        $criteria->params = array(':name'=>"%$name%", 'employee' => $root);
                         $criteria->limit = 20;
                         $emplArray = Employees::model()->findAll($criteria);
 
